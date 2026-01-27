@@ -106,20 +106,6 @@ def train_one_epoch(
 
             criterion.lmbda = lambda_value
 
-        #Adapter
-        elif  args_mask is None:
-                
-            # Selection of the index    
-            index = np.random.choice(np.arange(6), p=probs)
-
-            # Selection of the relacted lambda value
-            lambda_value = lambda_list[index]
-
-            # Update the index in all the adapters
-            set_index_switch(model,index)
-
-            # Update the lambda in the optimizer
-            criterion.lmbda = lambda_value
 
         optimizer.zero_grad()
         if aux_optimizer is not None:
