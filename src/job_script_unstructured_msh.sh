@@ -25,7 +25,7 @@ conda activate magv
 
 # Execute the Python script with specific arguments
 #srun python my_script.py --data $DATA_DIR --lr $LR --epochs $EPOCHS --batch-size $BATCH_SIZE
-srun python train_refactor.py --batch-size=16 \
+srun python train.py --batch-size=16 \
                                     --cuda=1 \
                                     --dataset=/home/ids/flauron-23/fiftyone/open-images-v6 \
                                     --epochs=21 \

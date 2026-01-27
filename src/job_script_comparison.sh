@@ -26,7 +26,7 @@ conda activate magv
 
 # Execute the Python script with specific arguments
 #srun python my_script.py --data $DATA_DIR --lr $LR --epochs $EPOCHS --batch-size $BATCH_SIZE
-srun python -u validation2.py 
+srun python -u validation.py 
                                     
 # Print job completion time
 echo "Job finished at: $(date)"
