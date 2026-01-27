@@ -16,7 +16,7 @@ from utils.masks import lambda_percentage,generate_mask_from_unstructured
 from utils.engine import compress_one_epoch
 from experiment import Experiment 
 from collections import OrderedDict
-from custom_comp.zoo import  load_state_dict,models
+from custom_comp.zoo import  load_state_dict,models, load_model_from_checkpoint
 
 from itertools import chain
 from collections import defaultdict
@@ -41,21 +41,21 @@ warnings.filterwarnings(
 
 log_wandb = True
 
-def load_model_from_checkpoint(checkpoint_path,factory_function,quality=6,pretrained=True,adapter=False):
+# def load_model_from_checkpoint(checkpoint_path,factory_function,quality=6,pretrained=True,adapter=False):
 
-    # Load the checkpoint
-    state_dict = torch.load(checkpoint_path, map_location='cpu')
-    print(state_dict["epoch"])
-    state_dict = load_state_dict(state_dict=state_dict)
+#     # Load the checkpoint
+#     state_dict = torch.load(checkpoint_path, map_location='cpu')
+#     print(state_dict["epoch"])
+#     state_dict = load_state_dict(state_dict=state_dict)
 
-    # Create the model
-    net = Cheng2020Attention().to("cuda")
-    net.load_state_dict(state_dict["state_dict"])
+#     # Create the model
+#     net = Cheng2020Attention().to("cuda")
+#     net.load_state_dict(state_dict["state_dict"])
 
-    # #update entropy model
-    net.update(force=True)
+#     # #update entropy model
+#     net.update(force=True)
 
-    return net
+#     return net
 
 def load_mask(mask_path):
     mask = torch.load(mask_path, map_location='cpu')
@@ -155,7 +155,7 @@ if __name__ == "__main__":
 
     #checkpoint_path = "/home/ids/flauron-23/MagV/data/magv_06_stf_unstructured/models/magv_06_stf_unstructured_checkpoint.pth.tar"
     #mask_path ="/home/ids/flauron-23/MagV/data/magv_06_stf_unstructured/masks/mask_magv_06_stf_unstructured.pth"
-    net = load_model_from_checkpoint(checkpoint_path=checkpoint_path,factory_function=cheng2020_attn)
+    net = load_model_from_checkpoint(Cheng2020Attention,checkpoint_path=checkpoint_path)
     mask = load_mask(mask_path=mask_path)
 
     # parameters_to_prune 

@@ -40,10 +40,10 @@ srun python train_refactor.py   --batch-size=16 \
                                     --vanilla-adapt=1 \
                                     --num-workers=30 \
                                     --mask \
-                                    --maxPrunning=0.55 \
+                                    --maxPrunning=0.6 \
                                     --minPruning=0.0 \
-                                    --nameRun=magv_55_stf_unstruct_41_epochs \
-                                    --maxPoint=6 \
+                                    --nameRun=magv_60_stf_unstruct_41_epochs_14_points \
+                                    --maxPoint=14 \
                                     --pruningType=unstructured
                                     
 # Print job completion time

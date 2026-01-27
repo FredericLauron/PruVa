@@ -44,30 +44,30 @@ def main():
         exp.train(epoch)
 
         # test 
-        exp.validate(epoch,exp.ctx.val_dataloader,'val')
+        # exp.validate(epoch,exp.ctx.val_dataloader,'val')
 
         # kodak
-        exp.validate(epoch,exp.ctx.kodak_dataloader,'kodak')
+        # exp.validate(epoch,exp.ctx.kodak_dataloader,'kodak')
 
         if epoch%5==0:
-            exp.make_plot(epoch)
+        #     exp.make_plot(epoch)
 
     # save model for the last epoch in order to use later
-    save_checkpoint(
-                        {
-                            "epoch": epoch,
-                            "state_dict": exp.ctx.net.state_dict(),
-                            "best_val_loss": exp.ctx.best_val_loss,
-                            "best_kodak_loss":exp.ctx.best_kodak_loss,
-                            "optimizer": exp.ctx.optimizer.state_dict(),
-                            "aux_optimizer": exp.ctx.aux_optimizer.state_dict() if exp.ctx.aux_optimizer is not None else None,
-                            "lr_scheduler": exp.ctx.lr_scheduler.state_dict(),
-                        },
-                        True, # is best
-                        out_dir=exp.ctx.model_dir,
-                        #filename=f"{str(args.lmbda).replace('0.','')}_checkpoint.pth.tar"
-                        filename=f"{exp.args.nameRun}_checkpoint.pth.tar"
-                    )
+            save_checkpoint(
+                                {
+                                    "epoch": epoch,
+                                    "state_dict": exp.ctx.net.state_dict(),
+                                    "best_val_loss": exp.ctx.best_val_loss,
+                                    "best_kodak_loss":exp.ctx.best_kodak_loss,
+                                    "optimizer": exp.ctx.optimizer.state_dict(),
+                                    "aux_optimizer": exp.ctx.aux_optimizer.state_dict() if exp.ctx.aux_optimizer is not None else None,
+                                    "lr_scheduler": exp.ctx.lr_scheduler.state_dict(),
+                                },
+                                True, # is best
+                                out_dir=exp.ctx.model_dir,
+                                #filename=f"{str(args.lmbda).replace('0.','')}_checkpoint.pth.tar"
+                                filename=f"{exp.args.nameRun}_checkpoint_{epoch}.pth.tar"
+                            )
 
 
 

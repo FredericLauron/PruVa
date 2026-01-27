@@ -432,7 +432,8 @@ def lambda_percentage(alpha,amount,lambda_max=0.0483,lambda_min=0.0018):
     
     lambda_values = np.exp(np.log(lambda_max) * (1 - alpha / amount) + np.log(lambda_min) * (alpha / amount))
 
-    return lambda_values,amount * (lambda_max - lambda_values) / (lambda_max - lambda_min)
+    # return lambda_values,amount * (lambda_max - lambda_values) / (lambda_max - lambda_min)
+    return lambda_values, amount * (np.log(lambda_max) - np.log(lambda_values)) / (np.log(lambda_max) - np.log(lambda_min))
 
 def check_neuron_sparsity(parameters_to_prune):
     """

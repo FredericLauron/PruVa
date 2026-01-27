@@ -42,8 +42,8 @@ srun python train_refactor.py   --batch-size=16 \
                                     --mask \
                                     --maxPrunning=0.40 \
                                     --minPruning=0.0 \
-                                    --nameRun=magv_40_tcm \
-                                    --maxPoint=6 \
+                                    --nameRun=magv_40_tcm_14_pts \
+                                    --maxPoint=14 \
                                     --lambda_max=0.05 \
                                     --lambda_min=0.0025 \
                                     --pruningType=unstructured\
