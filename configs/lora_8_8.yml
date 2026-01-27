@@ -1,6 +1,0 @@
-r: 8
-alpha: 8
-mlp_fc1: True
-mlp_fc2: True
-encoder: [True,True,True,True]
-decoder: [True,True,True,True]
