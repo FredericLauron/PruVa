@@ -58,12 +58,13 @@ def train_one_epoch(
         
         d = d.to(device)
 
-        # Mask selection. 
-        # A mask is ramdomly selected (uniform distribution) from the list of masks.
-        # The associated lambda is then selected from the lambda_list.     
+        # Mask selection.     
         if args_mask is not None and lambda_list is not None:
             
+            # A mask is ramdomly selected (uniform distribution) from the list of masks.
             index = np.random.choice(np.arange(len(lambda_list)), p=probs)
+
+            # The associated lambda is then selected from the lambda_list.
             lambda_value = lambda_list[index]
 
             lambda_anchor = lambda_max
@@ -91,19 +92,6 @@ def train_one_epoch(
                 apply_saved_mask(model.g_s, all_mask["g_s"][index])
 
             
-            # if lambda_list[index] < 0.0483 and not put_lambda_max : 
-            #     apply_saved_mask(model.g_a, all_mask["g_a"][index])
-            #     apply_saved_mask(model.g_s, all_mask["g_s"][index])
-            
-            # # With put_lambda_max we want to train a mask for RD level 0.0483
-            # elif abs(lambda_list[index] - 0.0483) <1e-6 and put_lambda_max:
-            #     apply_saved_mask(model.g_a, all_mask["g_a"][index])
-            #     apply_saved_mask(model.g_s, all_mask["g_s"][index])
-
-            # else:
-                # No mask for 0.483 lambda 0.0 amount pruning   
-                # pass
-
             criterion.lmbda = lambda_value
 
 
