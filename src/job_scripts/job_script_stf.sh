@@ -3,7 +3,7 @@
 #SBATCH --output=%x_%j.out            # Output file (%x for job name, %j for job ID)
 #SBATCH --error=%x_%j.err             # Error file
 #SBATCH --partition=mm              # Partition to submit to (A100, V100, etc.)
-
+#SBATCH --nodelist=nodemm06
 
 
 #SBATCH --gres=gpu:1                  # Request 1 GPU
@@ -30,7 +30,7 @@ conda activate magv
 srun python train.py   --batch-size=16 \
                                     --cuda=1 \
                                     --dataset=/home/ids/flauron-23/fiftyone/open-images-v6 \
-                                    --epochs=41 \
+                                    --epochs=21 \
                                     --lambda=0.013 \
                                     --learning-rate=0.0001 \
                                     --model=stf \
@@ -40,11 +40,11 @@ srun python train.py   --batch-size=16 \
                                     --vanilla-adapt=1 \
                                     --num-workers=30 \
                                     --mask \
-                                    --maxPrunning=0.6 \
+                                    --maxPrunning=0.2 \
                                     --minPruning=0.0 \
-                                    --nameRun=magv_60_stf_unstruct_41_epochs_14_points \
-                                    --maxPoint=14 \
-                                    --pruningType=unstructured
+                                    --nameRun=magv_20_stf_struct_21_epochs_6_points \
+                                    --maxPoint=6 \
+                                    --pruningType=structured
                                     
 # Print job completion time
 echo "Job finished at: $(date)"

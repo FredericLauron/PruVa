@@ -4,8 +4,6 @@ from utils import save_checkpoint
 from utils.engine import test_epoch,train_one_epoch, compress_one_epoch #, AverageMeter,pad,crop
 from utils.masks import delete_mask, apply_saved_mask
 
-from utils.chengBA2 import set_index_switch,measure_switch_sparcity,measure_sparsity_induce_by_switch
-
 from evaluate import plot_rate_distorsion
 
 from compressai.zoo import cheng2020_attn,mbt2018_mean
@@ -45,8 +43,8 @@ class Experiment:
 
                     bpp_ac, psnr_ac, mssim_ac = compress_one_epoch(self.ctx.net, self.ctx.kodak_dataloader, self.ctx.device)
 
-                    delete_mask(self.ctx.net.g_a,self.ctx.parameters_to_prune["g_a"])
-                    delete_mask(self.ctx.net.g_s,self.ctx.parameters_to_prune["g_s"])
+                    delete_mask(self.ctx.net.g_a,self.ctx.all_mask["g_a"][index])
+                    delete_mask(self.ctx.net.g_s,self.ctx.all_mask["g_s"][index])
 
                 # No mask for 0.483 lambda 0.0 amount pruning   
                 else:
@@ -124,8 +122,8 @@ class Experiment:
 
                         bpp_ac, psnr_ac, mssim_ac = compress_one_epoch(self.ctx.net, self.ctx.kodak_dataloader, self.ctx.device)
 
-                        delete_mask(self.ctx.net.g_a,self.ctx.parameters_to_prune["g_a"])
-                        delete_mask(self.ctx.net.g_s,self.ctx.parameters_to_prune["g_s"])
+                        delete_mask(self.ctx.net.g_a,self.ctx.all_mask["g_a"][index])
+                        delete_mask(self.ctx.net.g_s,self.ctx.all_mask["g_s"][index])
 
                     # No mask for 0.483 lambda 0.0 amount pruning   
                     else:
@@ -236,7 +234,6 @@ class Experiment:
             args_mask=self.args.mask,
             all_mask=self.ctx.all_mask if self.args.mask  else None,
             lambda_list=self.ctx.lambda_list if self.args.mask else None,
-            parameters_to_prune=self.ctx.parameters_to_prune if self.args.mask  else None,
             probs=None
         )
 
@@ -263,14 +260,14 @@ class Experiment:
 
                     loss_tot_val, bpp_loss_val, mse_loss_val, aux_loss_val, psnr_val, ssim_val = test_epoch(epoch, dataloader, self.ctx.net, self.ctx.criterion, tag)
                     
-                    delete_mask(self.ctx.net.g_a,self.ctx.parameters_to_prune["g_a"])
-                    delete_mask(self.ctx.net.g_s,self.ctx.parameters_to_prune["g_s"])
+                    delete_mask(self.ctx.net.g_a,self.ctx.all_mask["g_a"][i])
+                    delete_mask(self.ctx.net.g_s,self.ctx.all_mask["g_s"][i])
                 else:
                     loss_tot_val, bpp_loss_val, mse_loss_val, aux_loss_val, psnr_val, ssim_val = test_epoch(epoch,dataloader, self.ctx.net, self.ctx.criterion, tag)
 
             # Adapter pruning type
-            else:
-                set_index_switch(self.ctx.net,i)
+            # else:
+            #     set_index_switch(self.ctx.net,i)
 
                 loss_tot_val, bpp_loss_val, mse_loss_val, aux_loss_val, psnr_val, ssim_val = test_epoch(epoch, dataloader, self.ctx.net, self.ctx.criterion, tag)
 

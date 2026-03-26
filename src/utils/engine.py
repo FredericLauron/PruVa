@@ -2,10 +2,8 @@ import torch
 from utils.functions import compute_psnr, compute_metrics, compute_msssim
 from compressai.ops import compute_padding
 from utils.masks import delete_mask,apply_saved_mask
-from utils.chengBA2 import set_index_switch
 
 from compressai.models.waseda import Cheng2020Attention
-from custom_comp.models import Cheng2020Attention_BA2
 
 import torch.nn.functional as F
 
@@ -42,7 +40,6 @@ def train_one_epoch(
         args_mask=None,
         all_mask=None,
         lambda_list=None,
-        parameters_to_prune=None,
         probs=None):
     
     model.train()
@@ -56,6 +53,8 @@ def train_one_epoch(
 
     for i, d in enumerate(train_dataloader):
         
+        if i > 5:
+            break
         d = d.to(device)
 
         # Mask selection.     
@@ -133,8 +132,8 @@ def train_one_epoch(
         aux_loss_metric.update(aux_loss.clone().detach())
 
         if apply_mask: #if args_mask  and index != len(lambda_list)-1:
-            delete_mask(model.g_a, parameters_to_prune["g_a"])
-            delete_mask(model.g_s, parameters_to_prune["g_s"])
+            delete_mask(model.g_a, all_mask["g_a"][index])
+            delete_mask(model.g_s, all_mask["g_s"][index])
 
     return loss_tot_metric.avg, bpp_loss_metric.avg, mse_loss_metric.avg, aux_loss_metric.avg
 
@@ -153,6 +152,9 @@ def test_epoch(epoch, test_dataloader, model, criterion, tag = 'Val'):
 
     with torch.no_grad():
         for i,d in enumerate(test_dataloader):
+
+            if i > 5:
+                break
 
             d = d.to(device)
             out_net = model(d)
@@ -179,14 +181,16 @@ def test_epoch(epoch, test_dataloader, model, criterion, tag = 'Val'):
 
 
 
-def compress_one_epoch(model, test_dataloader, device):
+def compress_one_epoch(model, test_dataloader, device, max_images = None):
     bpp_metric = AverageMeter()
     psnr_metric = AverageMeter()
     mssim_metric = AverageMeter()
 
     
     with torch.no_grad():
-        for i,d in enumerate(test_dataloader): 
+        for i,d in enumerate(test_dataloader):
+            if max_images is not None and i >= 30:
+                break 
             print("-------------    image ",i,"  --------------------------------")
     
             d = d.to(device)
@@ -217,6 +221,8 @@ def compress_one_epoch(model, test_dataloader, device):
 
     
     return bpp_metric.avg, psnr_metric.avg, mssim_metric.avg
+
+
 
 
 def pad(x, p):

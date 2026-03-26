@@ -15,10 +15,10 @@ from custom_comp.zoo import models
 from utils import CustomDataParallel,configure_optimizers
 from utils.loss import RateDistortionLoss
 from utils.dataset import TestKodakDataset
-from utils.chengBA2 import inject_adapter,freeze_model_with_switch
-from utils.masks import generate_mask_from_structured,lambda_percentage,\
+
+from utils.masks import lambda_percentage,\
                         generate_mask_from_unstructured,\
-                        generate_mask_from_structured_fisher
+                        generate_mask_from_structured
 
 class Context:
     """Experiment context"""
@@ -50,10 +50,6 @@ class Context:
         self.train_dataloader, self.val_dataloader, self.kodak_dataloader = self._get_dataloaders(args)
         self.net = self._get_model(args)
 
-        # Adapter
-        if args.pruningType=="adapter":
-            inject_adapter(self.net,args.rank,args.alpha) 
-
         #Put model on GPU after injecting adapter
         self.net=self.net.to(self.device)
 
@@ -65,8 +61,6 @@ class Context:
         # Adapter
         # Done after optimizer to avoid trigger error
         # Froze all the parameters except the switches
-        if args.pruningType =="adapter":
-            freeze_model_with_switch(self.net)
 
         self.last_epoch = 0
         self.best_val_loss = float("inf")
@@ -85,7 +79,12 @@ class Context:
 
         # Masks
         if args.mask:
-            self.all_mask, self.parameters_to_prune = self._get_mask(args)
+            if args.pruningType == "unstructured":
+                self.all_mask, self.parameters_to_prune = self._get_mask_unstructured(args)
+            elif args.pruningType == "structured":
+                self.all_mask = self._get_mask_structured(args)
+                self.parameters_to_prune = None
+
     
     def _get_folder_path(self,folder_name):
         return os.path.join(self.project_run_path, "..", folder_name, self.args.nameRun)       
@@ -213,28 +212,27 @@ class Context:
     def _get_lr_scheduler(self,optimizer,args):
         return optim.lr_scheduler.ReduceLROnPlateau(optimizer, "min", factor=0.3, patience=4)
  
-    def _get_mask(self,args):
-
-        all_mask,parameters_to_prune = {}, {}
-
-        if args.pruningType =="structured":
-            if args.fisher:
-                all_mask["g_a"], parameters_to_prune["g_a"] = generate_mask_from_structured_fisher(self.net,self.amounts,self.train_dataloader,self.criterion,self.net.g_a)
-                all_mask["g_s"], parameters_to_prune["g_s"] = generate_mask_from_structured_fisher(self.net,self.amounts,self.train_dataloader,self.criterion,self.net.g_s)
-            else:
-                all_mask["g_a"], parameters_to_prune["g_a"] = generate_mask_from_structured(self.net.g_a, self.amounts)
-                all_mask["g_s"], parameters_to_prune["g_s"] = generate_mask_from_structured(self.net.g_s, self.amounts)
-
-        elif args.pruningType == "unstructured":
-                all_mask["g_a"], parameters_to_prune["g_a"] = generate_mask_from_unstructured(self.net.g_a, self.amounts)
-                all_mask["g_s"], parameters_to_prune["g_s"] = generate_mask_from_unstructured(self.net.g_s, self.amounts)
-
-        # Save masks 
-        torch.save(all_mask, f"{self.mask_dir}/mask_{args.nameRun}.pth")
-        torch.save(parameters_to_prune, f"{self.mask_dir}/parameters_to_prune_{args.nameRun}.pth")
+    def _get_mask_unstructured(self,args):
         
-        return all_mask, parameters_to_prune
-    
+            all_mask,parameters_to_prune = {}, {}
+
+            all_mask["g_a"], parameters_to_prune["g_a"] = generate_mask_from_unstructured(self.net.g_a, self.amounts)
+            all_mask["g_s"], parameters_to_prune["g_s"] = generate_mask_from_unstructured(self.net.g_s, self.amounts)
+
+            # Save masks 
+            torch.save(all_mask, f"{self.mask_dir}/mask_{args.nameRun}.pth")
+            torch.save(parameters_to_prune, f"{self.mask_dir}/parameters_to_prune_{args.nameRun}.pth")
+            
+            return all_mask, parameters_to_prune
+              
+    def _get_mask_structured(self,args):
+
+        all_mask = generate_mask_from_structured(self.net,self.amounts)
+        
+        torch.save(all_mask, f"{self.mask_dir}/mask_{args.nameRun}.pth")
+
+        return all_mask
+
     def _get_checkpoint(self,args):
 
         print("Loading", args.checkpoint)

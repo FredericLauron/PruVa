@@ -14,7 +14,7 @@
 
 
 # from custom_compress .models import SymmetricalTransFormer, WACNN
-from custom_comp.models import SymmetricalTransFormer, WACNN, Cheng2020Attention_BA2,QVRFCheng,stfQVRF,GainedMSHyperprior,TCM
+from custom_comp.models import SymmetricalTransFormer, WACNN,QVRFCheng,stfQVRF,GainedMSHyperprior,TCM
 
 from .pretrained import load_pretrained as load_state_dict
 from compressai.models.waseda import Cheng2020Attention

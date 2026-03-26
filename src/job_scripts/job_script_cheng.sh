@@ -5,7 +5,6 @@
 #SBATCH --partition=mm              # Partition to submit to (A100, V100, etc.)
 
 
-
 #SBATCH --gres=gpu:1                  # Request 1 GPU
 #SBATCH --cpus-per-task=30             # Request 8 CPU cores
 #SBATCH --mem=32G                     # Request 32 GB of memory
@@ -30,23 +29,20 @@ conda activate magv
 srun python train.py   --batch-size=16 \
                                     --cuda=1 \
                                     --dataset=/home/ids/flauron-23/fiftyone/open-images-v6 \
-                                    --epochs=41 \
+                                    --epochs=21 \
                                     --lambda=0.013 \
                                     --learning-rate=0.0001 \
-                                    --model=tcm \
+                                    --model=cheng \
                                     --save=1 \
                                     --save-dir=../results/mask/adapt_0483 \
                                     --test-dir=/home/ids/flauron-23/kodak \
                                     --vanilla-adapt=1 \
                                     --num-workers=30 \
                                     --mask \
-                                    --maxPrunning=0.40 \
-                                    --minPruning=0.0 \
-                                    --nameRun=magv_40_tcm_14_pts \
+                                    --maxPrunning=0.6 \
+                                    --nameRun=magv_60_cheng_14_pts\
                                     --maxPoint=14 \
-                                    --lambda_max=0.05 \
-                                    --lambda_min=0.0025 \
-                                    --pruningType=unstructured\
+                                    --pruningType=unstructured
                                     
 # Print job completion time
 echo "Job finished at: $(date)"

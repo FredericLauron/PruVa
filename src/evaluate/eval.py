@@ -24,14 +24,15 @@ from torchvision.utils import save_image
 import sys
 
 from evaluate.bd_metrics import *
-from lora.merge import get_merged_lora
 
 # from comp.zoo.pretrained import load_pretrained
 # from compressai.zoo.pretrained import load_pretrained
 from custom_comp.zoo.pretrained import load_pretrained
 from compressai.zoo import cheng2020_attn, mbt2018_mean, bmshj2018_hyperprior, mbt2018
 from evaluate.colors_models import Colors
-
+from utils import compute_metrics, seed_all
+from utils.masks import apply_saved_mask, delete_mask
+from utils.engine import compress_one_epoch
 
 from collections import defaultdict
 import json
@@ -40,9 +41,8 @@ from tqdm import tqdm
 import compressai
 
 
-from utils import compute_metrics, seed_all
 
-from lora import get_lora_model
+
 import seaborn as sns
 palette = sns.color_palette("tab10")
 
@@ -477,5 +477,94 @@ if __name__ == "__main__":
 
     plot_rate_distorsion_psnr(new_metrics,save_path_img, colors=Colors)
 
+def compress_with_masks(net,masks ,dataloader, parameters_to_prune,device,max_images = None,anchor = False):
+    """
+    Docstring for compress_with_masks
+    
+    :param net: The model to be evaluated
+    :param masks: The masks to be applied for pruning
+    :param dataloader: The dataloader for the test set
+    :param parameters_to_prune: The parameters to be pruned in the model
+    :param device: The device to be used for computation
+    :param max_images: The maximum number of images to be evaluated (default: None, which means all images will be evaluated)
+    :param anchor: If True, include an anchor point (i.e., no pruning case). Some checkpoints contains only the pruned masks, so the anchor point is not always available (default: False)
+    :return: The bpp, psnr and mssim lists for the given masks
+    """
+    bpp_list = []
+    psnr_list = []
+    mssim_list = []
+
+    print("Make actual compression")
+    net.update(force = True)
 
     
+    for index in range(len(masks["g_a"])):# +1 to include no pruning case
+
+        #if index < len(masks["g_a"]):#if index != len(self.ctx.all_mask["g_a"]): # Last index is no pruning 
+            
+        apply_saved_mask(net.g_a, masks["g_a"][index])
+        apply_saved_mask(net.g_s, masks["g_s"][index])
+
+        bpp_ac, psnr_ac, mssim_ac = compress_one_epoch(net, dataloader, device, max_images=max_images)
+
+        delete_mask(net.g_a,parameters_to_prune["g_a"])
+        delete_mask(net.g_s,parameters_to_prune["g_s"])
+
+        # # No mask for 0.483 lambda 0.0 amount pruning   
+        # else: 
+        #         bpp_ac, psnr_ac, mssim_ac = compress_one_epoch(net, dataloader, device, max_images=max_images)
+        
+        bpp_list.append(bpp_ac)
+        psnr_list.append(psnr_ac)
+        mssim_list.append(mssim_ac)
+
+    if anchor:
+        bpp_ac, psnr_ac, mssim_ac = compress_one_epoch(net, dataloader, device, max_images=max_images)
+
+        bpp_list.append(bpp_ac)
+        psnr_list.append(psnr_ac)
+        mssim_list.append(mssim_ac)
+
+    return bpp_list, psnr_list, mssim_list
+    
+def make_plot(model,net,old_masks,new_masks,parameters_to_prune,device,dataloader,name,log_wandb=False,max_images = None,anchor = False):
+            psnr_res = {}
+            mssim_res = {}
+            bpp_res = {} 
+
+            if parameters_to_prune is not None:
+                if old_masks is not None :
+                    bpp_res["old_masks"],psnr_res["old_masks"],mssim_res["old_masks"] = compress_with_masks(net,old_masks,dataloader,parameters_to_prune,device,max_images,anchor)
+                if new_masks is not None :
+                    bpp_res["new_masks"],psnr_res["new_masks"],mssim_res["new_masks"] = compress_with_masks(net,new_masks,dataloader,parameters_to_prune,device,max_images,anchor)
+            else:#qvrf
+                bpp_res[model],psnr_res[model],mssim_res[model] = compress_one_epoch(net, dataloader, device, max_images=max_images)    
+            # Reference results from json
+            # with open("/home/ids/flauron-23/MagV/json/ref_results.json", "r") as f:
+            #     ref_results = json.load(f)
+
+            # bpp_res[model] = ref_results["bpp"][model]
+            # psnr_res[model] = ref_results["psnr"][model]
+            # mssim_res[model] = ref_results["mssim"][model]
+
+            # plot_rate_distorsion(bpp_res, psnr_res, 
+            #                     "inference_stf", eest="compression", 
+            #                     metric = 'PSNR',
+            #                     save_fig=True,
+            #                     file_name=os.path.join("results", f"psnr_{name}.png"),
+            #                     log_wandb=log_wandb)
+
+            # plot_rate_distorsion(bpp_res, 
+            #                     mssim_res, 
+            #                     "inference_stf", 
+            #                     eest="compression_mssim", 
+            #                     metric = 'MS-SSIM',
+            #                     save_fig=True,
+            #                     file_name=os.path.join("results", f"mssim_{name}.png"),
+            #                     log_wandb=log_wandb, is_psnr=False)
+
+            #Save data dictionnary
+            results = {"psnr": psnr_res,"mssim": mssim_res,"bpp": bpp_res}
+            file_path = os.path.join("results",f"{name}.json")
+            with open(file_path, "w") as f:
+                json.dump(results, f)

@@ -44,13 +44,13 @@ def main():
         exp.train(epoch)
 
         # test 
-        # exp.validate(epoch,exp.ctx.val_dataloader,'val')
+        exp.validate(epoch,exp.ctx.val_dataloader,'val')
 
         # kodak
-        # exp.validate(epoch,exp.ctx.kodak_dataloader,'kodak')
+        exp.validate(epoch,exp.ctx.kodak_dataloader,'kodak')
 
         if epoch%5==0:
-        #     exp.make_plot(epoch)
+            exp.make_plot(epoch)
 
     # save model for the last epoch in order to use later
             save_checkpoint(

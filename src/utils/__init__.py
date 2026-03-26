@@ -8,13 +8,10 @@ from .engine import test_epoch,train_one_epoch, compress_one_epoch, AverageMeter
 from .loss import RateDistortionLoss
 from .dataset import TestKodakDataset
 from .functions import compute_metrics, compute_msssim, compute_psnr
-from .masks import delete_mask, save_mask, generate_mask_from_unstructured,\
-    apply_saved_mask,generate_mask_from_structured,adjust_sampling_distribution,\
-    generate_mask_from_structured_fisher,lambda_percentage,group_by_module
+from .masks import delete_mask, save_mask, generate_mask_from_unstructured,apply_saved_mask,lambda_percentage,count_zeros_ones
 
 #from .chengBA2_old import get_Cheng2020Attention_with_conv_switch, set_cheng2020Attention_index,frozen_cheng2020Attention
-from .chengBA2 import freeze_model_with_switch, inject_adapter,\
-      set_index_switch,ConvWithAdapterSwitch,SubpelConvWithAdapterSwitch,measure_switch_sparcity,measure_sparsity_induce_by_switch,thresholdFunction
+
 import random
 import os
 import numpy as np
